@@ -43,7 +43,7 @@ return [
             'synchronous' => null,
             // ...and every transaction takes the write lock at BEGIN, so "check for
             // conflicts, then insert" runs for one booking at a time (see REFLECTION.md).
-            'transaction_mode' => 'IMMEDIATE',
+            'transaction_mode' => env('DB_TRANSACTION_MODE', 'IMMEDIATE'),
         ],
 
         'mysql' => [

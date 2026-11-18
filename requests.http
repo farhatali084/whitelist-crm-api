@@ -1,0 +1,135 @@
+### Example requests. Open in VS Code (REST Client extension) or PhpStorm and click "Send Request".
+### Start the API first: composer start   -> http://127.0.0.1:8000
+### All times are UTC. Asia/Almaty = UTC+5, so 10:00 Almaty = 05:00Z.
+### Managers 1, 2, 3 are created by the seeder.
+### Dates use Monday 2030-01-07 so they are always in the future.
+
+@base = http://127.0.0.1:8000
+
+### 1. Add a company -> 201
+POST {{base}}/companies
+Content-Type: application/json
+Accept: application/json
+
+{"name": "ТОО \"Алматы Трейд Компани\"", "bin": "170340021554", "phone": "+7 727 123 45 67"}
+
+### 2. Same BIN again -> 422 "A company with this BIN already exists."
+POST {{base}}/companies
+Content-Type: application/json
+Accept: application/json
+
+{"name": "Duplicate", "bin": "170340021554", "phone": "+7 727 000 00 00"}
+
+### 3. Second company
+POST {{base}}/companies
+Content-Type: application/json
+Accept: application/json
+
+{"name": "Digital Solutions", "bin": "180540012343", "phone": "+7 701 555 44 33"}
+
+### 4. List companies with filter and pagination
+GET {{base}}/companies?status=new&page=1&per_page=20
+Accept: application/json
+
+### 5. Book a meeting: Mon 10:00-11:00 Almaty -> 201
+POST {{base}}/meetings
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 1, "manager_id": 1, "starts_at": "2030-01-07T05:00:00Z"}
+
+### 6. Same manager 10:30 -> 409 manager_busy (overlaps 10:00-11:00)
+POST {{base}}/meetings
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 2, "manager_id": 1, "starts_at": "2030-01-07T05:30:00Z"}
+
+### 7. Same manager 11:00 -> 201 (back-to-back is not a conflict)
+POST {{base}}/meetings
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 2, "manager_id": 1, "starts_at": "2030-01-07T06:00:00Z"}
+
+### 8. Company 1 with ANOTHER manager at 10:30 -> 409 company_busy
+POST {{base}}/meetings
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 1, "manager_id": 2, "starts_at": "2030-01-07T05:30:00Z"}
+
+### 9. 17:30 Almaty -> 422 outside_working_hours (would end 18:30)
+POST {{base}}/meetings
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 2, "manager_id": 3, "starts_at": "2030-01-07T12:30:00Z"}
+
+### 10. Saturday -> 422 outside_working_hours
+POST {{base}}/meetings
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 2, "manager_id": 3, "starts_at": "2030-01-12T05:00:00Z"}
+
+### 11. Time without a timezone -> 422 validation_failed
+POST {{base}}/meetings
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 2, "manager_id": 3, "starts_at": "2030-01-07T10:00:00"}
+
+### 12. Call "meeting_set" WITHOUT a meeting -> 422 (rule 5)
+POST {{base}}/calls
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 1, "manager_id": 1, "result": "meeting_set"}
+
+### 13. Call "meeting_set" with the meeting from request 5 -> 201, company status = meeting_set
+POST {{base}}/calls
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 1, "manager_id": 1, "result": "meeting_set", "meeting_id": 1, "comment": "Agreed on a demo"}
+
+### 14. Call "no_answer" -> 201
+POST {{base}}/calls
+Content-Type: application/json
+Accept: application/json
+
+{"company_id": 2, "manager_id": 2, "result": "no_answer"}
+
+### 15. Reschedule meeting 1 to 15:00 Almaty -> 200, history keeps the original slot
+PATCH {{base}}/meetings/1
+Content-Type: application/json
+Accept: application/json
+
+{"starts_at": "2030-01-07T10:00:00Z"}
+
+### 16. Meeting with full history
+GET {{base}}/meetings/1
+Accept: application/json
+
+### 17. Manager 1's schedule for Monday (Almaty day)
+GET {{base}}/managers/1/schedule?date=2030-01-07
+Accept: application/json
+
+### 18. Cancel meeting 2 -> 200
+PATCH {{base}}/meetings/2
+Content-Type: application/json
+Accept: application/json
+
+{"status": "cancelled"}
+
+### 19. Change a cancelled meeting -> 409 meeting_cancelled
+PATCH {{base}}/meetings/2
+Content-Type: application/json
+Accept: application/json
+
+{"starts_at": "2030-01-08T05:00:00Z"}
+
+### 20. Unknown meeting -> 404
+GET {{base}}/meetings/999
+Accept: application/json

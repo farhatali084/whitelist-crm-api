@@ -7,6 +7,9 @@ use App\Http\Controllers\MeetingController;
 use Illuminate\Support\Facades\Route;
 
 // Paths exactly as in the assignment (no /api prefix, see bootstrap/app.php).
+// There is no UI; the root only says what this is.
+Route::get('/', fn () => ['name' => 'Whitelist CRM API', 'docs' => 'See README.md and requests.http']);
+
 Route::post('/companies', [CompanyController::class, 'store']);
 Route::get('/companies', [CompanyController::class, 'index']);
 
