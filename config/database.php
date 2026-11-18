@@ -37,9 +37,13 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
+            // Concurrent bookings: a writer waits up to 5 s for the lock instead of failing...
+            'busy_timeout' => 5000,
             'journal_mode' => null,
             'synchronous' => null,
+            // ...and every transaction takes the write lock at BEGIN, so "check for
+            // conflicts, then insert" runs for one booking at a time (see REFLECTION.md).
+            'transaction_mode' => 'IMMEDIATE',
         ],
 
         'mysql' => [
