@@ -21,7 +21,7 @@ composer start
 5. runs the migrations and seeds three managers (ids 1, 2, 3)
 6. starts the server
 
-The API is then at **http://127.0.0.1:8000**. If port 8000 is busy, Laravel picks the next free port and prints it, so use the URL shown in the terminal.
+The API is then at **http://127.0.0.1:8000**. If port 8000 is busy, Laravel usually picks the next free port and prints it, so use the URL shown in the terminal. On Windows, another PHP server already on port 8000 is not always detected; if `http://127.0.0.1:8000/` doesn't answer `{"name":"Whitelist CRM API",...}`, stop the server and run `php artisan serve --port=8001`. The setup is already done at that point.
 
 Stop the server with `Ctrl+C`. Running `composer start` again keeps the data. To start with an empty database, delete `database/database.sqlite` first.
 
